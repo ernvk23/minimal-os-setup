@@ -349,15 +349,23 @@ show_summary() {
         echo "🚪 Please log out and back in for zsh shell change to take effect"
     fi
     
-    echo "📋 Log file created at: $LOG_FILE"
     echo "========================================="
-    cat "$LOG_FILE"
+    echo "📋 Log file at: $LOG_FILE"
+    # Display only new log entries since script launch
+    if [[ -f "$LOG_FILE" ]]; then
+        NEW_LOG_LINES=$(wc -l < "$LOG_FILE" 2>/dev/null || echo 0)
+        if [[ "$NEW_LOG_LINES" -gt "$INITIAL_LOG_LINES" ]]; then
+            tail -n +$((INITIAL_LOG_LINES + 1)) "$LOG_FILE"
+        fi
+    fi
     echo "========================================="
 }
 
 # Main function to run the setup script
 main() {
     echo "=== 🪶 Minimal OS Setup Script ==="
+    # Get initial log file line count
+    INITIAL_LOG_LINES=$( [ -f "$LOG_FILE" ] && wc -l < "$LOG_FILE" || echo 0 )
     log "INFO" "Setup started at $(date)"
     check_not_wsl
     check_supported_distro
